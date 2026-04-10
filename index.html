@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anabolic Enzyme Production - Interactive Pathway</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        /* Mevalonate Pathway Visualization */
+        .pathway-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .pathway-stage {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pathway-stage::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .pathway-stage:hover::before {
+            width: 100%;
+        }
+
+        .pathway-stage:hover {
+            transform: translateX(10px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stage-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            flex-shrink: 0;
+        }
+
+        .stage-title {
+            flex: 1;
+        }
+
+        .stage-title h3 {
+            color: #333;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+
+        .stage-title .molecule-name {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .enzyme-tag {
+            background: #28a745;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            display: inline-block;
+            margin: 5px 5px 5px 0;
+        }
+
+        .stage-description {
+            color: #666;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .chemical-formula {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            color: #495057;
+            margin: 10px 0;
+            display: inline-block;
+        }
+
+        /* Interactive Steroid Pathway */
+        .steroid-pathway {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            position: relative;
+            min-height: 600px;
+        }
+
+        .pathway-node {
+            position: absolute;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 180px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .pathway-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .pathway-node.active {
+            border-color: #f5576c;
+            background: #fff5f7;
+        }
+
+        .pathway-node .node-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .pathway-node h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .pathway-node .node-type {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            display: inline-block;
+        }
+
+        /* Connection lines */
+        .connection-line {
+            position: absolute;
+            background: #667eea;
+            height: 3px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        /* Enzyme Info Panel */
+        .enzyme-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+            border-left: 5px solid #f5576c;
+            animation: slideIn 0.3s ease;
+        }
+
+        .enzyme-panel.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .enzyme-panel h3 {
+            color: #f5576c;
+            margin-bottom: 15px;
+        }
+
+        .enzyme-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .detail-card h5 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        /* Animation Canvas */
+        .canvas-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            max-width: 100%;
+            background: #fafafa;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Metabolic Grid */
+        .metabolic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metabolic-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .metabolic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .metabolic-card.anabolic {
+            border-top: 5px solid #28a745;
+        }
+
+        .metabolic-card.catabolic {
+            border-top: 5px solid #dc3545;
+        }
+
+        .metabolic-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .energy-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .energy-indicator.atp-consume {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .energy-indicator.atp-produce {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Progress Tracker */
+        .progress-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: #e9ecef;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .milestone-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .milestone {
+            text-align: center;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .milestone.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .pathway-flow {
+                flex-direction: column;
+            }
+            
+            .steroid-pathway {
+                min-height: auto;
+                position: relative;
+            }
+            
+            .pathway-node {
+                position: relative;
+                margin: 10px 0;
+                left: auto !important;
+                top: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚗️ Anabolic Enzyme Production</h1>
+            <p>Interactive Guide to Steroid Biosynthesis & Metabolic Pathways</p>
+        </header>
+
+        <div class="content">
+            <!-- Overview Section -->
+            <div class="section">
+                <h2>📚 Overview of Anabolic Enzymes</h2>
+                <p>Anabolic enzymes catalyze biochemical reactions that synthesize larger complex molecules from smaller units [[2]]. These enzymes harness energy from ATP or other high-energy molecules to drive synthetic reactions forward [[4]].</p>
+                
+                <div class="metabolic-grid">
+                    <div class="metabolic-card anabolic">
+                        <h3>🏗️ Anabolic Pathways</h3>
+                        <span class="energy-indicator atp-consume">Requires Energy (ATP)</span>
+                        <p>Build up large molecules from smaller ones through biosynthesis. Examples include protein synthesis, steroid biosynthesis, and DNA replication [[8]].</p>
+                    </div>
+                    
+                    <div class="metabolic-card catabolic">
+                        <h3>🔨 Catabolic Pathways</h3>
+                        <span class="energy-indicator atp-produce">Produces Energy (ATP)</span>
+                        <p>Break down complex molecules into simpler ones, releasing energy. Examples include glycolysis and beta-oxidation.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mevalonate Pathway -->
+            <div class="section">
+                <h2>🧬 The Mevalonate Pathway</h2>
+                <p>Steroid biosynthesis follows the <strong>mevalonate pathway</strong> that uses acetyl-CoA as building blocks to form steroids from simple precursors [[11]].</p>
+                
+                <div class="pathway-flow">
+                    <div class="pathway-stage" onclick="showStageDetails(0)">
+                        <div class="stage-header">
+                            <div class="stage-number">1</div>
+                            <div class="stage-title">
+                                <h3>Starting Materials</h3>
+                                <span class="molecule-name">Acetyl-CoA</span>
+                            </div>
+                        </div>
+                        <div class="chemical-formula">C₂₃H₃₈N₇O₁₇P₃S</div>
+                        <span class="enzyme-tag">Acetyl-CoA Acetyltransferase</span>
+                        <p class="stage-description">Two molecules of acetyl-CoA condense to form acetoacetyl-CoA, the first step in the mevalonate pathway.</p>
+                    </div>
+
+                    <div class="pathway-stage" onclick="showStageDetails(1)">
+                        <div class="stage-header">
+                            <div class="stage-number">2</div>
+                            <div class="stage-title">
+                                <h3>HMG-CoA Formation</h3>
+                                <span class="molecule-name">HMG-CoA</span>
+                            </div>
+                        </div>
+                        <span class="enzyme-tag">HMG-CoA Synthase</span>
+                        <p class="stage-description">Acetoacetyl-CoA combines with another acetyl-CoA to form 3-hydroxy-3-methylglutaryl-CoA (HMG-CoA).</p>
+                    </div>
+
+                    <div class="pathway-stage" onclick="showStageDetails(2)">
+                        <div class="stage-header">
+                            <div class="stage-number">3</div>
+                            <div class="stage-title">
+                                <h3>Mevalonate Production</h3>
+                                <span class="molecule-name">Mevalonate</span>
+                            </div>
+                        </div>
+                        <span class="enzyme-tag">HMG-CoA Reductase</span>
+                        <p class="stage-description">Rate-limiting step: HMG-CoA is reduced to mevalonate. This is the committed step in cholesterol biosynthesis.</p>
+                    </div>
+
+                    <div class="pathway-stage" onclick="showStageDetails(3)">
+                        <div class="stage-header">
+                            <div class="stage-number">4</div>
+                            <div class="stage-title">
+                                <h3>Isoprenoid Units</h3>
+                                <span class="molecule-name">IPP & DMAPP</span>
+                            </div>
+                        </div>
+                        <span class="enzyme-tag">Mevalonate Kinase</span>
+                        <span class="enzyme-tag">Phosphomevalonate Kinase</span>
+                        <p class="stage-description">Mevalonate is phosphorylated and decarboxylated to form isopentenyl pyrophosphate (IPP) and dimethylallyl pyrophosphate (DMAPP).</p>
+                    </div>
+
+                    <div class="pathway-stage" onclick="showStageDetails(4)">
+                        <div class="stage-header">
+                            <div class="stage-number">5</div>
+                            <div class="stage-title">
+                                <h3>Squalene Formation</h3>
+                                <span class="molecule-name">Squalene</span>
+                            </div>
+                        </div>
+                        <span class="enzyme-tag">Squalene Synthase</span>
+                        <p class="stage-description">IPP and DMAPP are coupled to form geranyl pyrophosphate (GPP), then farnesyl pyrophosphate (FPP), and finally squalene (C₃₀).</p>
+                    </div>
+
+                    <div class="pathway-stage" onclick="showStageDetails(5)">
+                        <div class="stage-header">
+                            <div class="stage-number">6</div>
+                            <div class="stage-title">
+                                <h3>Lanosterol Cyclization</h3>
+                                <span class="molecule-name">Lanosterol</span>
+                            </div>
+                        </div>
+                        <span class="enzyme-tag">Squalene Epoxidase</span>
+                        <span class="enzyme-tag">Oxidosqualene Cyclase</span>
+                        <p class="stage-description">Squalene is epoxidized to 2,3-oxidosqualene, which undergoes electrophilic cyclization to form lanosterol, the first steroid in the pathway [[11]].</p>
+                    </div>
+
+                    <div class="pathway-stage" onclick="showStageDetails(6)">
+                        <div class="stage-header">
+                            <div class="stage-number">7</div>
+                            <div class="stage-title">
+                                <h3>Cholesterol Synthesis</h3>
+                                <span class="molecule-name">Cholesterol</span>
+                            </div>
+                        </div>
+                        <span class="enzyme-tag">Multiple Enzymes</span>
+                        <p class="stage-description">Lanosterol undergoes multiple conversions including removal of three methyl groups and double bond rearrangements to form cholesterol (C₂₇).</p>
+                    </div>
+                </div>
+
+                <div id="stageDetails" class="enzyme-panel">
+                    <h3 id="stageTitle"></h3>
+                    <div id="stageContent"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Steroid Pathway Map -->
+            <div class="section">
+                <h2>🔄 Steroid Hormone Biosynthesis Pathway</h2>
+                <p>Steroid hormones are derived from cholesterol through the action of cytochrome P450 enzymes. Click on each node to learn about the conversion [[14]].</p>
+                
+                <div class="steroid-pathway" id="steroidPathway">
+                    <!-- Nodes will be positioned by JavaScript -->
+                    <div class="pathway-node" style="left: 50px; top: 50px;" onclick="selectNode('cholesterol')">
+                        <div class="node-icon">🧪</div>
+                        <h4>Cholesterol</h4>
+                        <span class="node-type">C₂₇ Steroid</span>
+                    </div>
+
+                    <div class="pathway-node" style="left: 300px; top: 50px;" onclick="selectNode('pregnenolone')">
+                        <div class="node-icon">⚡</div>
+                        <h4>Pregnenolone</h4>
+                        <span class="node-type">C₂₁ Steroid</span>
+                    </div>
+
+                    <div class="pathway-node" style="left: 550px; top: 50px;" onclick="selectNode('progesterone')">
+                        <div class="node-icon">🔬</div>
+                        <h4>Progesterone</h4>
+                        <span class="node-type">Gestagen</span>
+                    </div>
+
+                    <div class="pathway-node" style="left: 300px; top: 200px;" onclick="selectNode('testosterone')">
+                        <div class="node-icon">💪</div>
+                        <h4>Testosterone</h4>
+                        <span class="node-type">C₁₉ Androgen</span>
+                    </div>
+
+                    <div class="pathway-node" style="left: 550px; top: 200px;" onclick="selectNode('estradiol')">
+                        <div class="node-icon">♀️</div>
+                        <h4>Estradiol</h4>
+                        <span class="node-type">C₁₈ Estrogen</span>
+                    </div>
+
+                    <div class="pathway-node" style="left: 800px; top: 50px;" onclick="selectNode('cortisol')">
+                        <div class="node-icon">🛡️</div>
+                        <h4>Cortisol</h4>
+                        <span class="node-type">Glucocorticoid</span>
+                    </div>
+
+                    <div class="pathway-node" style="left: 800px; top: 200px;" onclick="selectNode('aldosterone')">
+                        <div class="node-icon">💧</div>
+                        <h4>Aldosterone</h4>
+                        <span class="node-type">Mineralocorticoid</span>
+                    </div>
+                </div>
+
+                <div id="nodeInfo" class="enzyme-panel">
+                    <h3 id="nodeTitle"></h3>
+                    <div id="nodeContent"></div>
+                </div>
+            </div>
+
+            <!-- Key Enzymes -->
+            <div class="section">
+                <h2>⚙️ Key Enzymes in Anabolic Pathways</h2>
+                <div class="enzyme-details">
+                    <div class="detail-card">
+                        <h5>CYP11A1 (P450scc)</h5>
+                        <p>Cholesterol side-chain cleavage enzyme that converts cholesterol (C₂₇) to pregnenolone (C₂₁), the first and rate-limiting step in steroid hormone biosynthesis [[14]].</p>
+                    </div>
+
+                    <div class="detail-card">
+                        <h5>CYP17A1</h5>
+                        <p>Bifunctional enzyme with 17α-hydroxylase and 17,20-lyase activities. Responsible for converting C₂₁ steroids to C₁₉ androgens [[14]].</p>
+                    </div>
+
+                    <div class="detail-card">
+                        <h5>Aromatase (CYP19A1)</h5>
+                        <p>Catalyzes the oxidative removal of the C19 methyl group and aromatization of ring A to convert androgens to estrogens (C₁₈ steroids) [[14]].</p>
+                    </div>
+
+                    <div class="detail-card">
+                        <h5>Squalene Epoxidase</h5>
+                        <p>Catalyzes the regioselective epoxidation of squalene to 2,3-oxidosqualene using FADH₂ and molecular oxygen. Key step before cyclization [[11]].</p>
+                    </div>
+
+                    <div class="detail-card">
+                        <h5>HMG-CoA Reductase</h5>
+                        <p>The rate-limiting enzyme in the mevalonate pathway. Converts HMG-CoA to mevalonate. Target of statin drugs.</p>
+                    </div>
+
+                    <div class="detail-card">
+                        <h5>5α-Reductase</h5>
+                        <p>Converts testosterone to dihydrotestosterone (DHT), a more potent androgen, through reduction of the Δ4 double bond.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animation Section -->
+            <div class="section">
+                <h2>🎬 Biosynthesis Animation</h2>
+                <div class="canvas-container">
+                    <canvas id="biosynthesisCanvas" width="1000" height="500"></canvas>
+                    <div class="controls">
+                        <button onclick="startBiosynthesisAnimation()">▶ Start Animation</button>
+                        <button onclick="pauseAnimation()">⏸ Pause</button>
+                        <button onclick="resetAnimation()">🔄 Reset</button>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="biosynthProgress">0%</div>
+                        </div>
+                        <div class="milestone-markers">
+                            <div class="milestone" onclick="jumpToStage(0)">Acetyl-CoA</div>
+                            <div class="milestone" onclick="jumpToStage(2)">Mevalonate</div>
+                            <div class="milestone" onclick="jumpToStage(4)">Squalene</div>
+                            <div class="milestone" onclick="jumpToStage(5)">Lanosterol</div>
+                            <div class="milestone" onclick="jumpToStage(6)">Cholesterol</div>
+                        </div>
+                    </div>
+                    <p id="animationStatus" style="margin-top: 15px; font-weight: 500;">Click "Start Animation" to visualize the complete biosynthetic pathway</p>
+                </div>
+            </div>
+
+            <!-- Interactive Quiz -->
+            <div class="section">
+                <h2>📝 Test Your Knowledge</h2>
+                <div class="quiz-container" id="quizContainer">
+                    <!-- Questions will be dynamically loaded -->
+                </div>
+            </div>
+
+            <!-- Key Facts -->
+            <div class="section">
+                <h2>📊 Key Facts About Anabolic Enzyme Production</h2>
+                <ul style="line-height: 2; font-size: 1.1em;">
+                    <li>All enzymes are proteins, and their synthesis involves linking amino acids in the correct sequence [[3]]</li>
+                    <li>Enzyme synthesis can be induced by the presence of substrates or hormones like steroids and thyroid hormones [[5]]</li>
+                    <li>The biosynthesis of steroids follows a unique pathway in animals compared to many other organisms [[11]]</li>
+                    <li>Squalene epoxidation is catalyzed by squalene epoxidase using flavin hydroperoxide as the oxidizing agent [[11]]</li>
+                    <li>The polyene cyclization involves stereospecific anti-periplanar addition across three C=C bonds [[11]]</li>
+                    <li>Steroid hormones include C₂₁ (progesterone, cortisol), C₁₉ (androgens), and C₁₈ (estrogens) compounds [[14]]</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stage details data
+        const stageDetails = [
+            {
+                title: "Acetyl-CoA - The Building Block",
+                content: `
+                    <p><strong>Chemical Formula:</strong> C₂₃H₃₈N₇O₁₇P₃S</p>
+                    <p>Acetyl-CoA serves as the fundamental building block for steroid biosynthesis. It is derived from various metabolic pathways including glycolysis, fatty acid oxidation, and amino acid catabolism.</p>
+                    <p><strong>Key Point:</strong> Two molecules of acetyl-CoA condense in a reaction catalyzed by acetyl-CoA acetyltransferase to form acetoacetyl-CoA.</p>
+                `
+            },
+            {
+                title: "HMG-CoA Formation",
+                content: `
+                    <p><strong>Enzyme:</strong> HMG-CoA Synthase</p>
+                    <p>HMG-CoA (3-hydroxy-3-methylglutaryl-CoA) is formed by the condensation of acetoacetyl-CoA with another molecule of acetyl-CoA.</p>
+                    <p>This is a critical intermediate that sits at the branch point between ketone body formation and cholesterol biosynthesis.</p>
+                `
+            },
+            {
+                title: "Mevalonate - The Committed Step",
+                content: `
+                    <p><strong>Enzyme:</strong> HMG-CoA Reductase (Rate-Limiting)</p>
+                    <p>This is the most important regulatory step in cholesterol biosynthesis. HMG-CoA reductase reduces HMG-CoA to mevalonate using 2 molecules of NADPH.</p>
+                    <p><strong>Clinical Significance:</strong> This enzyme is the target of statin drugs used to lower cholesterol levels.</p>
+                    <p>The reaction requires ATP and is irreversible, committing the molecule to the steroid biosynthesis pathway.</p>
+                `
+            },
+            {
+                title: "Isoprenoid Unit Formation",
+                content: `
+                    <p><strong>Products:</strong> IPP (Isopentenyl pyrophosphate) & DMAPP (Dimethylallyl pyrophosphate)</p>
+                    <p>Mevalonate undergoes two phosphorylation steps followed by decarboxylation to form these 5-carbon isoprenoid units.</p>
+                    <p>These activated isoprene units are the building blocks for all terpenoids and steroids.</p>
+                `
+            },
+            {
+                title: "Squalene - The Linear Precursor",
+                content: `
+                    <p><strong>Chemical Formula:</strong> C₃₀H₅₀</p>
+                    <p>Squalene is a 30-carbon polyunsaturated hydrocarbon formed by the head-to-head condensation of two molecules of farnesyl pyrophosphate (FPP).</p>
+                    <p><strong>Structure:</strong> A long, flexible chain with 6 double bonds that will fold into a specific conformation for cyclization.</p>
+                `
+            },
+            {
+                title: "Lanosterol Cyclization",
+                content: `
+                    <p><strong>Key Enzymes:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Squalene Epoxidase:</strong> Converts squalene to 2,3-oxidosqualene</li>
+                        <li><strong>Oxidosqualene-Lanosterol Cyclase:</strong> Catalyzes the remarkable cyclization</li>
+                    </ul>
+                    <p><strong>The Mechanism:</strong> The epoxide ring opens to initiate a cascade of electrophilic additions, forming four rings (three 6-membered and one 5-membered) in a single enzymatic step.</p>
+                    <p>This is followed by a series of 1,2-hydride and 1,2-methyl shifts to form lanosterol.</p>
+                `
+            },
+            {
+                title: "Cholesterol - The Final Product",
+                content: `
+                    <p><strong>Chemical Formula:</strong> C₂₇H₄₆O</p>
+                    <p>Lanosterol undergoes approximately 19 enzymatic steps to become cholesterol, including:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Removal of three methyl groups (at C4 and C14)</li>
+                        <li>Migration of the double bond from position 8 to 5</li>
+                        <li>Reduction of the double bond at position 24</li>
+                    </ul>
+                    <p><strong>Function:</strong> Cholesterol is the precursor for all steroid hormones, bile acids, and vitamin D.</p>
+                `
+            }
+        ];
+
+        // Node information
+        const nodeInfo = {
+            cholesterol: {
+                title: "Cholesterol (C₂₇)",
+                content: `
+                    <p><strong>Role:</strong> The precursor for all steroid hormones</p>
+                    <p><strong>Enzyme:</strong> CYP11A1 (P450scc - side-chain cleavage enzyme)</p>
+                    <p>Cholesterol is transported into mitochondria where CYP11A1 catalyzes the removal of a 6-carbon unit from the side chain, converting it to pregnenolone.</p>
+                    <p>This is the rate-limiting step in steroid hormone biosynthesis and is regulated by trophic hormones (ACTH, LH, FSH).</p>
+                `
+            },
+            pregnenolone: {
+                title: "Pregnenolone (C₂₁)",
+                content: `
+                    <p><strong>Role:</strong> The "mother" of all steroid hormones</p>
+                    <p><strong>Enzyme:</strong> 3β-HSD (3β-hydroxysteroid dehydrogenase)</p>
+                    <p>Pregnenolone can follow two pathways:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Δ5 pathway: Directly to androgens via DHEA</li>
+                        <li>Δ4 pathway: Converted to progesterone first</li>
+                    </ul>
+                `
+            },
+            progesterone: {
+                title: "Progesterone (C₂₁)",
+                content: `
+                    <p><strong>Role:</strong> Gestagen hormone; precursor for other steroids</p>
+                    <p><strong>Enzymes:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>21-Hydroxylase:</strong> For mineralocorticoid pathway</li>
+                        <li><strong>17α-Hydroxylase:</strong> For glucocorticoid and androgen pathways</li>
+                    </ul>
+                    <p>Progesterone is essential for pregnancy and can be converted to cortisol, aldosterone, or androgens.</p>
+                `
+            },
+            testosterone: {
+                title: "Testosterone (C₁₉)",
+                content: `
+                    <p><strong>Role:</strong> Primary male sex hormone (androgen)</p>
+                    <p><strong>Formation:</strong> From pregnenolone via two pathways:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Δ5 pathway:</strong> Pregnenolone → DHEA → Androstenedione → Testosterone</li>
+                        <li><strong>Δ4 pathway:</strong> Progesterone → 17-OH Progesterone → Androstenedione → Testosterone</li>
+                    </ul>
+                    <p><strong>Enzyme:</strong> CYP17A1 (17,20-lyase activity)</p>
+                `
+            },
+            estradiol: {
+                title: "Estradiol (C₁₈)",
+                content: `
+                    <p><strong>Role:</strong> Primary female sex hormone (estrogen)</p>
+                    <p><strong>Enzyme:</strong> Aromatase (CYP19A1)</p>
+                    <p>Formed by oxidative removal of the C19 methyl group from testosterone and aromatization of ring A.</p>
+                    <p>This unique reaction converts the A ring from cyclohexane to benzene, creating the aromatic structure characteristic of estrogens.</p>
+                `
+            },
+            cortisol: {
+                title: "Cortisol (C₂₁)",
+                content: `
+                    <p><strong>Role:</strong> Main glucocorticoid - stress hormone</p>
+                    <p><strong>Pathway:</strong> 17-OH Progesterone → 11-Deoxycortisol → Cortisol</p>
+                    <p><strong>Enzymes:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>17α-Hydroxylase</li>
+                        <li>21-Hydroxylase</li>
+                        <li>11β-Hydroxylase</li>
+                    </ul>
+                    <p>Regulated by ACTH from the pituitary gland.</p>
+                `
+            },
+            aldosterone: {
+                title: "Aldosterone (C₂₁)",
+                content: `
+                    <p><strong>Role:</strong> Main mineralocorticoid - regulates salt and water balance</p>
+                    <p><strong>Pathway:</strong> Corticosterone → Aldosterone</p>
+                    <p><strong>Enzyme:</strong> Aldosterone synthase (CYP11B2)</p>
+                    <p>Performs hydroxylation and oxidation at carbon 18 to create the aldehyde group characteristic of aldosterone.</p>
+                    <p>Regulated by the renin-angiotensin system.</p>
+                `
+            }
+        };
+
+        // Quiz questions
+        const quizQuestions = [
+            {
+                question: "What is the starting molecule for steroid biosynthesis?",
+                options: ["Glucose", "Acetyl-CoA", "Pyruvate", "Citrate"],
+                correct: 1
+            },
+            {
+                question: "Which enzyme catalyzes the rate-limiting step in cholesterol biosynthesis?",
+                options: ["Squalene epoxidase", "HMG-CoA synthase", "HMG-CoA reductase", "Lanosterol cyclase"],
+                correct: 2
+            },
+            {
+                question: "What is the first steroid formed in the biosynthetic pathway?",
+                options: ["Cholesterol", "Squalene", "Lanosterol", "Pregnenolone"],
+                correct: 2
+            },
+            {
+                question: "Which enzyme converts cholesterol to pregnenolone?",
+                options: ["CYP11A1 (P450scc)", "CYP17A1", "Aromatase", "3β-HSD"],
+                correct: 0
+            },
+            {
+                question: "How many carbon atoms does cholesterol have?",
+                options: ["30 (C₃₀)", "27 (C₂₇)", "21 (C₂₁)", "19 (C₁₉)"],
+                correct: 1
+            }
+        ];
+
+        let currentStage = 0;
+        let animationId = null;
+        let isAnimating = false;
+        let quizScore = 0;
+        let answeredQuestions = new Set();
+
+        function showStageDetails(stageNum) {
+            const panel = document.getElementById('stageDetails');
+            const title = document.getElementById('stageTitle');
+            const content = document.getElementById('stageContent');
+            
+            title.textContent = stageDetails[stageNum].title;
+            content.innerHTML = stageDetails[stageNum].content;
+            panel.classList.add('show');
+            
+            // Highlight selected stage
+            document.querySelectorAll('.pathway-stage').forEach((stage, idx) => {
+                if (idx === stageNum) {
+                    stage.style.borderColor = '#f5576c';
+                    stage.style.background = '#fff5f7';
+                } else {
+                    stage.style.borderColor = 'transparent';
+                    stage.style.background = 'white';
+                }
+            });
+        }
+
+        function selectNode(nodeId) {
+            const panel = document.getElementById('nodeInfo');
+            const title = document.getElementById('nodeTitle');
+            const content = document.getElementById('nodeContent');
+            
+            title.textContent = nodeInfo[nodeId].title;
+            content.innerHTML = nodeInfo[nodeId].content;
+            panel.classList.add('show');
+            
+            // Highlight selected node
+            document.querySelectorAll('.pathway-node').forEach(node => {
+                node.classList.remove('active');
+            });
+            event.target.closest('.pathway-node').classList.add('active');
+        }
+
+        // Animation
+        const molecules = [
+            { name: 'Acetyl-CoA', x: 50, y: 250, color: '#3498db' },
+            { name: 'HMG-CoA', x: 200, y: 250, color: '#9b59b6' },
+            { name: 'Mevalonate', x: 350, y: 250, color: '#e74c3c' },
+            { name: 'IPP/DMAPP', x: 500, y: 200, color: '#f39c12' },
+            { name: 'Squalene', x: 650, y: 150, color: '#2ecc71' },
+            { name: 'Lanosterol', x: 800, y: 200, color: '#e91e63' },
+            { name: 'Cholesterol', x: 950, y: 250, color: '#1abc9c' }
+        ];
+
+        function drawBiosynthesisAnimation() {
+            const canvas = document.getElementById('biosynthesisCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw pathway line
+            ctx.beginPath();
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 4;
+            ctx.moveTo(molecules[0].x, molecules[0].y);
+            
+            for (let i = 1; i < molecules.length; i++) {
+                ctx.lineTo(molecules[i].x, molecules[i].y);
+            }
+            ctx.stroke();
+            
+            // Draw molecules
+            molecules.forEach((mol, index) => {
+                const isActive = index <= currentStage;
+                
+                // Draw circle
+                ctx.beginPath();
+                ctx.fillStyle = isActive ? mol.color : '#ecf0f1';
+                ctx.arc(mol.x, mol.y, 35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw label
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(mol.name, mol.x, mol.y + 55);
+                
+                // Draw checkmark if completed
+                if (index < currentStage) {
+                    ctx.fillStyle = '#28a745';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.fillText('✓', mol.x, mol.y + 5);
+                }
+            });
+            
+            // Draw enzyme labels
+            const enzymes = ['HMG-CoA Synthase', 'HMG-CoA Reductase', 'Mevalonate Kinase', 'Squalene Synthase', 'Squalene Epoxidase', 'Multiple Enzymes'];
+            enzymes.forEach((enzyme, i) => {
+                if (i < currentStage) {
+                    ctx.fillStyle = '#f5576c';
+                    ctx.font = 'bold 11px Arial';
+                    const midX = (molecules[i].x + molecules[i+1].x) / 2;
+                    const midY = (molecules[i].y + molecules[i+1].y) / 2 - 20;
+                    ctx.fillText(enzyme, midX, midY);
+                }
+            });
+        }
+
+        function startBiosynthesisAnimation() {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            function animate() {
+                if (currentStage < molecules.length - 1) {
+                    currentStage += 0.015;
+                    const percentage = Math.round((currentStage / (molecules.length - 1)) * 100);
+                    document.getElementById('biosynthProgress').style.width = percentage + '%';
+                    document.getElementById('biosynthProgress').textContent = percentage + '%';
+                    document.getElementById('animationStatus').textContent = 
+                        `Converting: ${molecules[Math.floor(currentStage)].name} → ${molecules[Math.floor(currentStage)+1].name}`;
+                    
+                    drawBiosynthesisAnimation();
+                    updateMilestones();
+                    animationId = requestAnimationFrame(animate);
+                } else {
+                    isAnimating = false;
+                    currentStage = molecules.length - 1;
+                    drawBiosynthesisAnimation();
+                    document.getElementById('animationStatus').textContent = 
+                        '✓ Complete! Cholesterol biosynthesis finished';
+                    document.getElementById('biosynthProgress').style.width = '100%';
+                    document.getElementById('biosynthProgress').textContent = '100%';
+                }
+            }
+            animate();
+        }
+
+        function pauseAnimation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                isAnimating = false;
+            }
+        }
+
+        function resetAnimation() {
+            pauseAnimation();
+            currentStage = 0;
+            document.getElementById('biosynthProgress').style.width = '0%';
+            document.getElementById('biosynthProgress').textContent = '0%';
+            document.getElementById('animationStatus').textContent = 
+                'Click "Start Animation" to visualize the complete biosynthetic pathway';
+            drawBiosynthesisAnimation();
+            updateMilestones();
+        }
+
+        function jumpToStage(stage) {
+            pauseAnimation();
+            currentStage = stage;
+            const percentage = Math.round((currentStage / (molecules.length - 1)) * 100);
+            document.getElementById('biosynthProgress').style.width = percentage + '%';
+            document.getElementById('biosynthProgress').textContent = percentage + '%';
+            drawBiosynthesisAnimation();
+            updateMilestones();
+            document.getElementById('animationStatus').textContent = 
+                `Jumped to: ${molecules[currentStage].name}`;
+        }
+
+        function updateMilestones() {
+            const milestones = document.querySelectorAll('.milestone');
+            milestones.forEach((m, idx) => {
+                if (idx <= Math.floor(currentStage)) {
+                    m.classList.add('active');
+                } else {
+                    m.classList.remove('active');
+                }
+            });
+        }
+
+        // Quiz
+        function initQuiz() {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+            
+            quizQuestions.forEach((q, idx) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.style.marginBottom = '20px';
+                questionDiv.style.padding = '20px';
+                questionDiv.style.background = '#f8f9fa';
+                questionDiv.style.borderRadius = '10px';
+                
+                questionDiv.innerHTML = `
+                    <h4 style="margin-bottom: 15px; color: #333;">${idx + 1}. ${q.question}</h4>
+                    <div class="options">
+                        ${q.options.map((opt, optIdx) => `
+                            <div class="option" onclick="checkQuizAnswer(this, ${idx}, ${optIdx})" 
+                                 style="padding: 12px; margin: 8px 0; background: white; border: 2px solid #ddd; 
+                                        border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">
+                                ${String.fromCharCode(65 + optIdx)}) ${opt}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+        }
+
+        function checkQuizAnswer(element, questionIdx, answerIdx) {
+            if (answeredQuestions.has(questionIdx)) return;
+            answeredQuestions.add(questionIdx);
+            
+            const question = quizQuestions[questionIdx];
+            const options = element.parentElement.querySelectorAll('.option');
+            
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            
+            if (answerIdx === question.correct) {
+                element.style.background = '#d4edda';
+                element.style.borderColor = '#28a745';
+                quizScore++;
+            } else {
+                element.style.background = '#f8d7da';
+                element.style.borderColor = '#dc3545';
+                options[question.correct].style.background = '#d4edda';
+                options[question.correct].style.borderColor = '#28a745';
+            }
+            
+            updateQuizScore();
+        }
+
+        function updateQuizScore() {
+            const total = quizQuestions.length;
+            let scoreElement = document.getElementById('quizScore');
+            
+            if (!scoreElement) {
+                scoreElement = document.createElement('p');
+                scoreElement.id = 'quizScore';
+                scoreElement.style.marginTop = '20px';
+                scoreElement.style.fontWeight = 'bold';
+                scoreElement.style.fontSize = '1.2em';
+                document.getElementById('quizContainer').appendChild(scoreElement);
+            }
+            
+            const percentage = Math.round((quizScore / total) * 100);
+            scoreElement.textContent = `Score: ${quizScore}/${total} (${percentage}%)`;
+            
+            if (percentage === 100) {
+                scoreElement.style.color = '#28a745';
+            } else if (percentage >= 60) {
+                scoreElement.style.color = '#ffc107';
+            } else {
+                scoreElement.style.color = '#dc3545';
+            }
+        }
+
+        function resetQuiz() {
+            quizScore = 0;
+            answeredQuestions.clear();
+            initQuiz();
+        }
+
+        // Initialize
+        drawBiosynthesisAnimation();
+        initQuiz();
+    </script>
+</body>
+</html>
